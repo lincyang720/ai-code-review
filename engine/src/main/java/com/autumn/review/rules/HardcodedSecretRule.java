@@ -62,6 +62,13 @@ public class HardcodedSecretRule implements ReviewRule {
                 continue;
             }
 
+            // 跳过注释行：注释掉的代码不会执行，报出来是纯噪音
+            String trimmedLine = line.trim();
+            if (trimmedLine.startsWith("//") || trimmedLine.startsWith("/*")
+                    || trimmedLine.startsWith("*")) {
+                continue;
+            }
+
             Matcher m = ASSIGN.matcher(line);
             if (m.find()) {
                 String keyword = m.group(1);

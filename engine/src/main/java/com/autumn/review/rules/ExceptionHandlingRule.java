@@ -61,6 +61,13 @@ public class ExceptionHandlingRule implements ReviewRule {
             String line = lines[i];
             String trimmed = line.trim();
             int ln = i + 1;
+
+            // 跳过注释行：注释掉的代码不会执行，报出来是纯噪音。
+            // 实测 hccloud-material-science 里 4/5 的 P1 都是被注释的 printStackTrace。
+            if (isComment(trimmed)) {
+                continue;
+            }
+
             boolean inCatch = isInsideCatch(lines, i);
 
             // A) 空 catch
@@ -114,6 +121,18 @@ public class ExceptionHandlingRule implements ReviewRule {
             }
         }
         return out;
+    }
+
+    /**
+     * 判断某行是否为注释。
+     * 单行注释（双斜杠）与块注释的中间行（星号开头）都跳过。
+     * 块注释的首尾行也一并跳过。
+     */
+    private boolean isComment(String trimmed) {
+        return trimmed.startsWith("//")
+                || trimmed.startsWith("/*")
+                || trimmed.startsWith("*")
+                || trimmed.startsWith("*/");
     }
 
     /**
