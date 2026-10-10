@@ -1,0 +1,7 @@
+# npm 安装产生的链接/缓存
+node_modules/
+package-lock.json
+
+# 系统
+.DS_Store
+Thumbs.db

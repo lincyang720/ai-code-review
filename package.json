@@ -1,0 +1,35 @@
+{
+  "name": "ai-code-review",
+  "version": "1.0.0",
+  "description": "AI 代码评审流水线 —— 对 Java 项目做确定性代码评审，输出分级报告与 GitLab MR 评论",
+  "bin": {
+    "ai-code-review": "bin/ai-code-review.cmd",
+    "ai-code-review-unix": "bin/ai-code-review.sh"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "scripts/",
+    "docs/",
+    "samples/",
+    "SKILL.md",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node -e \"console.log('ai-code-review 已安装。运行 ai-code-review --help 查看用法')\""
+  },
+  "keywords": [
+    "code-review",
+    "java",
+    "static-analysis",
+    "git",
+    "gitlab",
+    "code-quality",
+    "ci"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "private": true
+}
