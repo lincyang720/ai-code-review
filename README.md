@@ -12,14 +12,38 @@
 ## 快速开始
 
 ```bash
-npm install -g .
-ai-code-review --help
+# 方式一：clone 后直接用（jar 已提交，无需 Maven）
+git clone https://github.com/lincyang720/ai-code-review.git
+cd ai-code-review && npm install -g.
 
-# 扫描你的项目
-ai-code-review D:/path/to/your-project ./out
+# 方式二：从源码构建
+git clone https://github.com/lincyang720/ai-code-review.git
+cd ai-code-review
+mvn -f engine/pom.xml clean package
+cp engine/target/review.jar lib/
+npm install -g.
+```
+
+验证：
+
+```bash
+ai-code-review --help
 ```
 
 **前提**：JDK 17+ 在 PATH 中。不需要网络，不需要 API Key。
+
+---
+
+## 从源码构建（开发者）
+
+```bash
+mvn -f engine/pom.xml clean package     # 构建到 engine/target/review.jar
+cp engine/target/review.jar lib/        # 更新 CLI 用的 jar
+npm install -g .                        # 重新安装
+```
+
+GitHub Actions 会在每次 push 时自动跑一遍自检：
+坏代码样本必须是 24 条、规范代码样本必须是 0 条，对不上就判定为规则回归。
 
 ---
 
@@ -36,7 +60,16 @@ ai-code-review-cli/
 │   └── ai-code-review.cmd        Windows（含 npm 生成的 shim 转发）
 │
 ├── lib/
-│   └── review.jar             核心引擎，38KB，零外部依赖
+│   └── review.jar             核心引擎，38KB，零外部依赖（已提交，clone 即可用）
+│
+├── engine/                    引擎源码（Maven 工程）
+│   ├── pom.xml
+│   └── src/main/java/com/autumn/review/
+│       ├── ReviewCli.java         CLI 入口
+│       ├── engine/                引擎 + 领域模型
+│       ├── rules/                 6 条规则
+│       ├── llm/                   LLM 增强接口
+│       └── report/                三份报告生成
 │
 ├── scripts/
 │   ├── install.sh             安装脚本（含 Java 前置检查）

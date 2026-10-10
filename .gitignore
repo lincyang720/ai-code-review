@@ -1,7 +1,24 @@
-# npm 安装产生的链接/缓存
+# Maven 构建产物
+engine/target/
+
+# npm
 node_modules/
 package-lock.json
+
+# 扫描输出
+out/
+out-*/
+review-out/
+*.report.md
+
+# IDE
+.idea/
+.vscode/
+*.iml
 
 # 系统
 .DS_Store
 Thumbs.db
+
+# 注意：lib/review.jar 是有意提交的构建产物，
+# 让 clone 的人无需 Maven 也能直接用。

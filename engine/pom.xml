@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.autumn</groupId>
+  <artifactId>ai-code-review</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>AI Code Review Demo</name>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <!--
+    刻意保持零第三方依赖。
+    理由：客户现场演示必须"解压即跑"——不联网、不配 API Key、不会因网络或模型问题翻车。
+    LLM 增强层通过接口（LlmReviewAssistant）注入，不绑定任何 SDK。
+  -->
+
+  <build>
+    <finalName>review</finalName>
+    <plugins>
+      <!--
+        必须显式锁定 compiler 插件版本。Maven 3.5.4 默认绑定的 3.1 不支持 Java 9+ 的
+        String.padStart 等 API，会报"找不到方法"。3.8.1 是兼容 JDK17 的稳定版本。
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.autumn.review.ReviewCli</mainClass>
+              <!-- Implementation-Version 供 ai-code-review 的version 参数读取，单一事实源 -->
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Version>${project.version}</Implementation-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

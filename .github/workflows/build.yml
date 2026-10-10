@@ -1,0 +1,66 @@
+name: Build & Self Check
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build jar
+        run: mvn -B -f engine/pom.xml clean package
+
+      - name: Install CLI (self check)
+        run: |
+          mkdir -p lib
+          cp engine/target/review.jar lib/review.jar
+          chmod +x bin/ai-code-review.sh
+          npm install -g .
+          ai-code-review --version
+
+      - name: Self check — bad-code sample (expect 24 findings)
+        run: |
+          ai-code-review ./samples/bad-code ./out
+          COUNT=$(grep -c '^- 问题：' ./out/review-report.md)
+          echo "findings: $COUNT"
+          if [ "$COUNT" -ne 24 ]; then
+            echo "::error::expected 24 findings but got $COUNT — rule regression detected"
+            exit 1
+          fi
+
+      - name: Self check — good-code sample (expect 0 findings)
+        run: |
+          ai-code-review ./samples/good-code ./out-good
+          COUNT=$(grep -c '^- 问题：' ./out-good/review-report.md || true)
+          echo "findings: $COUNT"
+          if [ "$COUNT" -ne 0 ]; then
+            echo "::error::expected 0 findings but got $COUNT — false positive detected"
+            exit 1
+          fi
+
+      - name: Verify help & version
+        run: |
+          ai-code-review --help
+          ai-code-review --version
+
+      - name: Upload sample report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-report
+          path: |
+            out/
+            out-good/
+          retention-days: 7
