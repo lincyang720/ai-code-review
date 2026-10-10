@@ -55,9 +55,10 @@ ai-code-review-cli/
 ├── package.json               npm 全局安装配置
 ├── README.md                  本文件
 │
-├── bin/                       启动器：自我定位包根，不依赖工作目录
-│   ├── ai-code-review.sh         Bash / Git Bash
-│   └── ai-code-review.cmd        Windows（含 npm 生成的 shim 转发）
+├── bin/                       启动器：自定位包根，不依赖工作目录
+│   ├── ai-code-review.js         Node 入口（npm bin，跨平台）
+│   ├── ai-code-review.cmd        Windows 启动器（纯 ASCII，见 INSTALL.md）
+│   └── ai-code-review.sh         Bash / Git Bash 启动器
 │
 ├── lib/
 │   └── review.jar             核心引擎，38KB，零外部依赖（已提交，clone 即可用）
@@ -92,13 +93,15 @@ ai-code-review-cli/
 
 | 文件 | 职责 | 何时被用到 |
 |---|---|---|
-| `bin/*.sh` / `*.cmd` | 解析自身位置 → 推导包根 → 定位 jar → 检查 java → 转发 | 每次调用 |
+| `bin/ai-code-review.js` | npm bin 入口。按平台转发、做前置检查 | 每次调用 |
+| `bin/*.sh` / `*.cmd` | 解析自身位置 → 推导包根 → 定位 jar → 附 UTF-8 | 每次调用 |
 | `lib/review.jar` | 全部评审逻辑（引擎 + 6 条规则 + 三份报告生成） | 每次调用 |
+| `engine/` | 引擎源码（Maven 工程），改规则后重新构建 | 开发时 |
 | `SKILL.md` | 告诉 AI 助手：何时触发、怎么调、怎么解读结果 | AI 助手加载时 |
 | `scripts/install.sh` | 检查 Java 版本、检查 jar、npm 安装、验证 | 安装时 |
 | `scripts/scan-ci.sh` | 大项目加内存、P0 计数、按策略决定是否阻断 | CI 中 |
 | `docs/*` | 参数、架构、CI 配置、变更记录 | 按需查阅 |
-| `samples/*` | 验证零误报 + 演示用 | 演示、回归测试 |
+| `samples/*` | 验证零误报 + 演示用 + **CI 回归基线** | 演示、回归测试 |
 
 ---
 
@@ -140,6 +143,17 @@ ai-code-review-cli/
 
 首轮扫描该真实项目产出 11697 条，经三轮误报调优降至 1470 条（**-87%**），
 P0/P1 真实信号零损失。详见 `docs/CHANGELOG.md`。
+
+### CI 自检
+
+每次 push 在 Linux 环境自动跑双样本回归：
+
+| 样本 | 期望 | 失败含义 |
+|---|---|---|
+| `samples/bad-code` | 24 条 | 规则被改坏了 |
+| `samples/good-code` | 0 条 | 出现误报 |
+
+CI 同时验证 CLI 可安装、`--help`/`--version` 可用。
 
 ---
 

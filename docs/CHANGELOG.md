@@ -63,3 +63,25 @@ P0/P1 真实信号零损失：
 - [ ] 规则库外置为配置文件，支持按团队规范定制
 - [ ] 对接 OWASP Dependency-Check / Trivy 替换内置依赖黑名单
 - [ ] P1 常见问题的自动修复建议（当前只给方向，不改代码）
+---
+
+## 技术决策：为什么 bin 用 Node 而非 .sh / .cmd
+
+npm 只有一个 `bin` 字段，**无法按平台选择入口**，这会造成死锁：
+
+- 指向 `.cmd` → Linux 生成的 shim 会把 Windows 批处理当 shell 执行
+  （实际踩到：CI 报 `@echo: command not found`）
+- 指向 `.sh` → Windows 无法直接执行
+
+**解法**：`bin` 指向 `bin/ai-code-review.js`（Node + shebang）。
+Node 是本工具链除 JDK 外唯一的依赖，两个平台原生可用；
+入口内部按 `process.platform` 转发到对应启动器。
+
+Windows 下 `spawnSync` 执行 `.cmd` 必须加 `shell: true`，否则静默无输出。
+
+### 跨平台验证结果
+
+| 平台 | bad-code | good-code |
+|---|---|---|
+| Windows（本地） | 24 条（P0 7 / P1 5） | 0 条 |
+| Linux（GitHub Actions） | 24 条（P0 7 / P1 5） | 0 条 |
