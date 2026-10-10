@@ -1,6 +1,6 @@
 {
   "name": "ai-code-review",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI 代码评审流水线 —— 对 Java 项目做确定性代码评审，输出分级报告与 GitLab MR 评论",
   "bin": {
     "ai-code-review": "bin/ai-code-review.js"
