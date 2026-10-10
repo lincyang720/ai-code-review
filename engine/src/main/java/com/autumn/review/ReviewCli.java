@@ -3,6 +3,7 @@ package com.autumn.review;
 import com.autumn.review.engine.Finding;
 import com.autumn.review.engine.ReviewEngine;
 import com.autumn.review.llm.LlmReviewAssistant;
+import com.autumn.review.report.HtmlReport;
 import com.autumn.review.report.ReviewReport;
 
 import java.io.PrintStream;
@@ -96,6 +97,7 @@ public class ReviewCli {
         out.println(">> LLM 层   : 未启用（规则层完全离线可用）");
         out.println();
 
+        long t0 = System.currentTimeMillis();
         int scanned;
         List<Finding> findings;
         if (Files.isDirectory(target)) {
@@ -106,6 +108,7 @@ public class ReviewCli {
             findings = engine.reviewContent(target.getFileName().toString(),
                     new String(Files.readAllBytes(target), StandardCharsets.UTF_8));
         }
+        long elapsed = System.currentTimeMillis() - t0;
 
         // ---- LLM 层：可选增强，失败静默降级 ----
         List<String> llmNotes = LlmReviewAssistant.batchExplain(
@@ -125,12 +128,15 @@ public class ReviewCli {
         }
 
         Path md = outDir.resolve("review-report.md");
+        Path html = outDir.resolve("review-report.html");
         Path comment = outDir.resolve("gitlab-comment.md");
         ReviewReport.write(md, ReviewReport.markdown(findings, label));
+        ReviewReport.write(html, HtmlReport.render(findings, label, scanned, elapsed));
         ReviewReport.write(comment, ReviewReport.gitlabComment(findings));
 
         out.println(" 报告已生成:");
-        out.println("   " + md);
+        out.println("   " + html + "  (推荐：仪表盘 + 折叠，可直接贴 issue/PR)");
+        out.println("   " + md + "     (适合 diff 与 AI 读取)");
         out.println("   " + comment + "  (可直接 POST 到 GitLab MR 评论)");
     }
 
